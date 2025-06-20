@@ -23,6 +23,21 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
+      - name: Mount Gradle user home on tmpfs
+        run: |
+          sudo mkdir -p /mnt/gradle
+          sudo mount -t tmpfs -o size=64g tmpfs /mnt/gradle
+          sudo chown -R $USER:$USER /mnt/gradle
+          ln -s /mnt/gradle ~/.gradle
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle-wrapper.properties') }}-${{ hashFiles('**/build.gradle') }}
+
       - run: flutter pub get
 
       - run: flutter build apk --release
